@@ -14,15 +14,25 @@ Works with Claude Code, Cursor, GitHub Copilot, Codex, Gemini CLI, and [40+ othe
 
 ## What's inside
 
-**Core principles** — 7 rules that govern every modeling decision: schema is the spec, one model per shape, only model what the LLM must produce, separate layers, reasoning first, no contradictions, start minimal.
+Five principles, then reference sections for when you're writing code.
 
-**Design for how LLMs actually work** — ask for decisions not estimates, scope context per step, order fields for generation quality, match structure to task difficulty.
+**1. Don't say the same thing twice** — schema owns shape, prompt owns intent. Responsibility table, no contradictions, template variables for branches, review checklist.
 
-**Models** — discriminated unions, field hygiene, naming, nullable vs empty, bounded extras, entity relationships, reasoning fields, strict-mode handling across providers.
+**2. Put reasoning first** — field order is not cosmetic. Chain-of-thought before target data, high-level decisions before details.
 
-**Prompts** — what stays in the prompt, what the schema already covers, template variables for branches, one source of truth.
+**3. Don't ask for what you already know** — derive fixed values in code, use separate models instead of optional fields, conditional schemas.
 
-**Validation & production** — sanitizers, re-asking on validation failure, versioning, evaluation, observation.
+**4. Design for how LLMs work** — separate LLM models from API/DB models, ask for decisions not estimates, match structure to task difficulty, scope context per step.
+
+**5. Start with the tightest schema that works** — the prompt suggests, the schema enforces. Complexity earned by failure, not speculation.
+
+**Schema shape** — one model per shape, discriminated unions (fixed slots, tagged unions), single-string wrapper avoidance, base class guidelines.
+
+**Field design** — naming, descriptions, nullable vs empty, closed sets, bounded extras, entity relationships, known vs unknown structure.
+
+**Strict mode & validation** — OpenAI and Anthropic quirks, sanitizers (pre-parse cleanup), validation feedback loops with re-asking.
+
+**Production** — versioning, evaluation with golden sets, observation and regression detection.
 
 ## Author
 
