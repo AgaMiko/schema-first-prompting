@@ -57,6 +57,7 @@ When reviewing a prompt/model pair, verify:
 - **Names match**: prompt uses the same field and concept names as the schema.
 - **Constraints match**: counts, limits, optionality, and branch behavior are identical.
 - **Responsibilities match**: prompt asks only for what the schema expects; schema models only what the LLM must produce.
+- **Assumptions explicit**: model capability requirements, input shape expectations, and downstream consumer needs are documented or obvious from context.
 
 ## 2. Put reasoning first
 
@@ -265,5 +266,5 @@ When `model_validate()` fails due to hallucinations or missed constraints, do no
 
 ## Production
 
-Prompts are artifacts, not immortal strings. Separate fixed wording from runtime data. Track changes in source control — when behavior shifts, you need a diff and a rollback story. Keep a small golden set of inputs with expected or acceptable outputs; rerun when the model or prompt changes. Subjective tasks still need criteria: length, must-include fields, forbidden patterns. Log latency, token use, and validation failures per prompt version so regressions surface before users report them.
+Prompts are artifacts, not immortal strings. Separate fixed wording from runtime data. Track changes in source control — when behavior shifts, you need a diff and a rollback story. Before changing a schema or prompt, define what "better" means — specific fields that should improve, edge cases that should now pass, or metrics that should move. Verify against these criteria after the change. Keep a small golden set of inputs with expected or acceptable outputs; rerun when the model or prompt changes. Subjective tasks still need criteria: length, must-include fields, forbidden patterns. Log latency, token use, and validation failures per prompt version so regressions surface before users report them.
 
