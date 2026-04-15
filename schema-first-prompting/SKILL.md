@@ -198,6 +198,28 @@ class Report(BaseModel):
     closing: str = Field(description="Closing summary: 2-3 sentences.")
 ```
 
+### Skip schemas entirely for single values
+
+If the entire task resolves to a single string, number, or boolean, do not use structured output or a Pydantic model. Forcing the model to return `{"translated_text": "Bonjour"}` wastes tokens on JSON formatting, keys, and whitespace, and adds latency with no structural benefit.
+
+When you only need one value, use a normal text completion and a prompt that pins the shape of the answer (for example, “return only the French translation”). Use schemas when the output must tie together **multiple** fields, enforce relationships, or support downstream validation.
+
+**Bad — unnecessary overhead:**
+
+```python
+class Translation(BaseModel):
+    translated_text: str
+
+# LLM outputs: {"translated_text": "Bonjour"}  # 11+ tokens on the wire
+```
+
+**Good — plain text:**
+
+```python
+# No schema. Prompt: "Return ONLY the French translation and nothing else."
+# LLM outputs: "Bonjour"  # ~2 tokens
+```
+
 ### Base classes
 
 Extract a shared base only when several shared fields justify it. One duplicated field across two models is clearer than a `_Base` with a single line.
@@ -205,7 +227,7 @@ Extract a shared base only when several shared fields justify it. One duplicated
 ## Field design
 
 - **Mutable defaults**: `default_factory=list`, never `[]`.
-- **Descriptions**: `Field(description=...)` guides the model; avoid internal jargon. If a field has long or subtle rules, put them in the description so they travel with the schema.
+- **Descriptions**: `Field(description=...)` is good practice — it guides the model and ships with JSON Schema. Each description should add **new** information: constraints, how this field differs from a sibling, edge cases, or rhetorical rules the name cannot carry. Do not paraphrase the field name (`summary: str` plus description `"Summary of the document"` adds nothing). Prefer a concrete bound or shape hint (`"Closing summary: 2–3 sentences."`). Avoid internal jargon; long or subtle rules belong in the description so they travel with the schema.
 - **Dead fields**: if nothing produces or consumes a field, drop it. Drop "legacy" aliases too.
 - **Names**: short, specific, readable in code and JSON Schema. Prefer names that describe the actual concept, not the implementation accident. Avoid vague names like `data`, `info`, `payload`, `value`, `type2`, or `misc`. Avoid ornamental naming: if `BannerCopy` says it, do not name a field `banner_copy_text_value`. Keep siblings parallel — `quote_text` / `quote_source`, not `quoteAttributionLine`. Rename awkward names early; small schema names spread into prompts, validators, logs, tests, and downstream code.
 - **Nullable vs empty**: use `str | None = None` when missing differs from empty. Under strict constrained decoding, omitted keys are not allowed — all fields must be marked as required, using nullable types (`["string", "null"]`) for optional values while keeping the key in `required`.
@@ -244,3 +266,4 @@ When `model_validate()` fails due to hallucinations or missed constraints, do no
 ## Production
 
 Prompts are artifacts, not immortal strings. Separate fixed wording from runtime data. Track changes in source control — when behavior shifts, you need a diff and a rollback story. Keep a small golden set of inputs with expected or acceptable outputs; rerun when the model or prompt changes. Subjective tasks still need criteria: length, must-include fields, forbidden patterns. Log latency, token use, and validation failures per prompt version so regressions surface before users report them.
+
